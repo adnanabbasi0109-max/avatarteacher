@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@livekit/components-react": "^2.7.0",
     "@prisma/client": "^6.3.0",
     "@radix-ui/react-avatar": "^1.1.0",
