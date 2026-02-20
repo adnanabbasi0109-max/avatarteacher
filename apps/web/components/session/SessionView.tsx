@@ -7,7 +7,7 @@ import {
   useTracks,
   RoomAudioRenderer,
 } from "@livekit/components-react";
-import { Track, RoomEvent } from "livekit-client";
+import { Track, RoomEvent, ConnectionState } from "livekit-client";
 import { AvatarCanvas } from "../avatar/AvatarCanvas";
 import { ChatPanel } from "./ChatPanel";
 import { SessionControls } from "./SessionControls";
@@ -44,7 +44,7 @@ export function SessionView({ sessionConfig, livekitUrl, token }: SessionViewPro
       serverUrl={livekitUrl}
       token={token}
       connect={true}
-      audio={true}
+      audio={false}
       video={false}
       options={{
         adaptiveStream: true,
@@ -62,10 +62,36 @@ function SessionContent({ config }: { config: SessionConfig }) {
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [sentiment, setSentiment] = useState("neutral");
   const [visualContent, setVisualContent] = useState<VisualContent | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const avatarRef = useRef<any>(null);
+
+  // Enable microphone only after room is fully connected
+  useEffect(() => {
+    const handleConnected = () => {
+      setIsConnected(true);
+      if (navigator?.mediaDevices) {
+        room.localParticipant?.setMicrophoneEnabled(true).catch((err) => {
+          console.warn("Could not enable microphone:", err);
+        });
+      }
+    };
+
+    const handleDisconnected = () => setIsConnected(false);
+
+    if (room.state === ConnectionState.Connected) {
+      handleConnected();
+    }
+
+    room.on(RoomEvent.Connected, handleConnected);
+    room.on(RoomEvent.Disconnected, handleDisconnected);
+    return () => {
+      room.off(RoomEvent.Connected, handleConnected);
+      room.off(RoomEvent.Disconnected, handleDisconnected);
+    };
+  }, [room]);
 
   const agentTracks = useTracks([Track.Source.Microphone], {
     onlySubscribed: true,
@@ -139,27 +165,46 @@ function SessionContent({ config }: { config: SessionConfig }) {
     });
   }, [room]);
 
-  const handleMute = () => {
-    room.localParticipant?.setMicrophoneEnabled(false);
-    setIsMuted(true);
+  const handleMute = async () => {
+    if (room.state !== ConnectionState.Connected) return;
+    try {
+      await room.localParticipant?.setMicrophoneEnabled(false);
+      setIsMuted(true);
+    } catch (err) {
+      console.error("Failed to mute microphone:", err);
+    }
   };
 
-  const handleUnmute = () => {
-    room.localParticipant?.setMicrophoneEnabled(true);
-    setIsMuted(false);
+  const handleUnmute = async () => {
+    if (room.state !== ConnectionState.Connected) return;
+    try {
+      if (!navigator?.mediaDevices) {
+        console.error("Media devices not available. Ensure the page is served over HTTPS.");
+        return;
+      }
+      await room.localParticipant?.setMicrophoneEnabled(true);
+      setIsMuted(false);
+    } catch (err) {
+      console.error("Failed to unmute microphone:", err);
+    }
   };
 
   const handleSendMessage = (text: string) => {
-    room.localParticipant?.publishData(
-      new TextEncoder().encode(
-        JSON.stringify({ type: "text_message", text })
-      ),
-      { reliable: true }
-    );
     setMessages((prev) => [
       ...prev,
       { role: "STUDENT", content: text, timestamp: new Date() },
     ]);
+    if (room.state !== ConnectionState.Connected) return;
+    try {
+      room.localParticipant?.publishData(
+        new TextEncoder().encode(
+          JSON.stringify({ type: "text_message", text })
+        ),
+        { reliable: true }
+      );
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    }
   };
 
   return (
