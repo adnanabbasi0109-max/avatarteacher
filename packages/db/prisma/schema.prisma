@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(STUDENT)
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courses     Course[]           @relation("TeacherCourses")
+  personas    Persona[]
+  enrollments Enrollment[]
+  sessions    Session[]
+  progress    LearningProgress[]
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subject     String
+  gradeLevel  String
+  teacherId   String
+  teacher     User     @relation("TeacherCourses", fields: [teacherId], references: [id])
+
+  modules     Module[]
+  enrollments Enrollment[]
+  personas    Persona[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Module {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  orderIndex  Int
+  courseId     String
+  course      Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  learningObjectives LearningObjective[]
+  contentChunks      ContentChunk[]
+
+  createdAt DateTime @default(now())
+}
+
+model LearningObjective {
+  id          String     @id @default(cuid())
+  description String
+  bloomLevel  BloomLevel
+  moduleId    String
+  module      Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  progress LearningProgress[]
+}
+
+enum BloomLevel {
+  REMEMBER
+  UNDERSTAND
+  APPLY
+  ANALYZE
+  EVALUATE
+  CREATE
+}
+
+model ContentChunk {
+  id          String      @id @default(cuid())
+  content     String
+  contentType ContentType
+  embedding   Float[]
+  sourceFile  String?
+  moduleId    String
+  module      Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+enum ContentType {
+  TEXT
+  CONCEPT
+  EXAMPLE
+  EXERCISE
+  FORMULA
+  DEFINITION
+  DIAGRAM_DESCRIPTION
+}
+
+model Persona {
+  id                String        @id @default(cuid())
+  name              String
+  avatarModelUrl    String
+  voiceId           String
+  voiceProvider     String
+  personalityPrompt String        @db.Text
+  teachingStyle     TeachingStyle
+  languageCode      String        @default("en")
+
+  courseId   String?
+  course     Course?  @relation(fields: [courseId], references: [id])
+  teacherId  String
+  teacher    User     @relation(fields: [teacherId], references: [id])
+
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+}
+
+enum TeachingStyle {
+  SOCRATIC
+  DIRECT
+  EXAMPLE_BASED
+  COLLABORATIVE
+  ADAPTIVE
+}
+
+model Session {
+  id            String        @id @default(cuid())
+  studentId     String
+  student       User          @relation(fields: [studentId], references: [id])
+  personaId     String
+  persona       Persona       @relation(fields: [personaId], references: [id])
+  livekitRoomId String?
+  startedAt     DateTime      @default(now())
+  endedAt       DateTime?
+  duration      Int?
+  status        SessionStatus @default(ACTIVE)
+
+  transcript   SessionMessage[]
+  analytics    SessionAnalytics?
+  sentimentLog SentimentEntry[]
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  INTERRUPTED
+  ERROR
+}
+
+model SessionMessage {
+  id         String      @id @default(cuid())
+  sessionId  String
+  session    Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role       MessageRole
+  content    String      @db.Text
+  timestamp  DateTime    @default(now())
+  audioUrl   String?
+  duration   Float?
+  confidence Float?
+  sentiment  String?
+  bloomLevel BloomLevel?
+}
+
+enum MessageRole {
+  STUDENT
+  AVATAR
+  SYSTEM
+}
+
+model SessionAnalytics {
+  id                  String   @id @default(cuid())
+  sessionId           String   @unique
+  session             Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  totalTurns          Int
+  avgResponseLatency  Float
+  studentSpeakTime    Float
+  avatarSpeakTime     Float
+  interruptionCount   Int
+  questionsAsked      Int
+  questionsAnswered   Int
+  comprehensionScore  Float?
+  engagementScore     Float?
+  topicsDiscussed     String[]
+  misconceptions      Json?
+  createdAt           DateTime @default(now())
+}
+
+model SentimentEntry {
+  id         String   @id @default(cuid())
+  sessionId  String
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  timestamp  DateTime @default(now())
+  sentiment  String
+  confidence Float
+  trigger    String?
+}
+
+model LearningProgress {
+  id            String             @id @default(cuid())
+  studentId     String
+  student       User               @relation(fields: [studentId], references: [id])
+  objectiveId   String
+  objective     LearningObjective  @relation(fields: [objectiveId], references: [id])
+  status        ProgressStatus     @default(NOT_STARTED)
+  score         Float?
+  attempts      Int                @default(0)
+  lastAttemptAt DateTime?
+
+  @@unique([studentId, objectiveId])
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  MASTERED
+  NEEDS_REVIEW
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id])
+  courseId    String
+  course     Course   @relation(fields: [courseId], references: [id])
+  enrolledAt DateTime @default(now())
+
+  @@unique([studentId, courseId])
+}

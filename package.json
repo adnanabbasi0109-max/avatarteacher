@@ -1,0 +1,19 @@
+{
+  "name": "eduavatar",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "db:push": "pnpm --filter @eduavatar/db db:push",
+    "db:generate": "pnpm --filter @eduavatar/db db:generate",
+    "db:migrate": "pnpm --filter @eduavatar/db db:migrate",
+    "db:seed": "pnpm --filter @eduavatar/db db:seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.10",
+    "typescript": "^5.9.3"
+  }
+}
