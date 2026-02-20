@@ -54,3 +54,51 @@ body {
   color: hsl(var(--foreground));
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* Avatar animations */
+@keyframes avatar-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.03); }
+}
+
+@keyframes avatar-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(96, 165, 250, 0.3), 0 0 20px rgba(96, 165, 250, 0.1); }
+  50% { box-shadow: 0 0 16px rgba(96, 165, 250, 0.5), 0 0 40px rgba(96, 165, 250, 0.2); }
+}
+
+@keyframes avatar-pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes avatar-fade-in {
+  from { opacity: 0; transform: scale(0.8) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.avatar-animated {
+  animation: avatar-float 3s ease-in-out infinite, avatar-glow 3s ease-in-out infinite;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.avatar-animated:hover {
+  animation-play-state: paused;
+  transform: scale(1.08);
+  box-shadow: 0 0 24px rgba(96, 165, 250, 0.6), 0 0 48px rgba(96, 165, 250, 0.3);
+}
+
+.avatar-card {
+  animation: avatar-fade-in 0.5s ease-out both;
+}
+
+.avatar-card:nth-child(1) { animation-delay: 0.1s; }
+.avatar-card:nth-child(2) { animation-delay: 0.25s; }
+.avatar-card:nth-child(3) { animation-delay: 0.4s; }
+
+.avatar-pulse-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 2px solid rgba(96, 165, 250, 0.4);
+  animation: avatar-pulse-ring 2s ease-out infinite;
+}

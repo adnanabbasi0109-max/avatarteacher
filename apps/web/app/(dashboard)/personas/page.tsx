@@ -1,7 +1,9 @@
+import Image from "next/image";
+
 const mockPersonas = [
-  { id: "1", name: "Prof. Ada", subject: "Mathematics", teachingStyle: "SOCRATIC", language: "English", voiceProvider: "cartesia" },
-  { id: "2", name: "Dr. Newton", subject: "Physics", teachingStyle: "EXAMPLE_BASED", language: "English", voiceProvider: "elevenlabs" },
-  { id: "3", name: "Ms. Sharma", subject: "Hindi Literature", teachingStyle: "COLLABORATIVE", language: "Hindi", voiceProvider: "cartesia" },
+  { id: "1", name: "Prof. Ada", subject: "Mathematics", teachingStyle: "SOCRATIC", language: "English", voiceProvider: "cartesia", avatar: "/avatars/prof-ada.jpg" },
+  { id: "2", name: "Sir Walter Lewin", subject: "Physics", teachingStyle: "EXAMPLE_BASED", language: "English", voiceProvider: "elevenlabs", avatar: "/avatars/sir-walter-lewin.jpg" },
+  { id: "3", name: "Ms. Sharma", subject: "Hindi Literature", teachingStyle: "COLLABORATIVE", language: "Hindi", voiceProvider: "cartesia", avatar: "/avatars/ms-sharma.jpg" },
 ];
 
 const styleLabels: Record<string, string> = {
@@ -27,9 +29,18 @@ export default function PersonasPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {mockPersonas.map((persona) => (
-          <div key={persona.id} className="rounded-xl border border-white/10 bg-white/5 p-6 hover:border-blue-400/30 transition">
-            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mx-auto">
-              <span className="text-2xl font-bold text-white">{persona.name.charAt(0)}</span>
+          <div key={persona.id} className="avatar-card rounded-xl border border-white/10 bg-white/5 p-6 hover:border-blue-400/30 transition">
+            <div className="relative mx-auto mb-4 w-fit">
+              <div className="avatar-animated h-20 w-20 rounded-full overflow-hidden ring-2 ring-blue-400/30">
+                <Image
+                  src={persona.avatar}
+                  alt={persona.name}
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="avatar-pulse-ring" />
             </div>
             <h3 className="text-center text-lg font-semibold text-white">{persona.name}</h3>
             <p className="text-center text-sm text-gray-400 mt-1">{persona.subject}</p>

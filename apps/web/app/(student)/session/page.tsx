@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { SessionView } from "@/components/session/SessionView";
 import { useSession } from "@/hooks/useSession";
 
 const mockPersonas = [
-  { id: "p1", name: "Prof. Ada", subject: "Mathematics", style: "Socratic" },
-  { id: "p2", name: "Dr. Newton", subject: "Physics", style: "Example-Based" },
-  { id: "p3", name: "Ms. Sharma", subject: "Hindi", style: "Collaborative" },
+  { id: "p1", name: "Prof. Ada", subject: "Mathematics", style: "Socratic", avatar: "/avatars/prof-ada.jpg" },
+  { id: "p2", name: "Sir Walter Lewin", subject: "Physics", style: "Example-Based", avatar: "/avatars/sir-walter-lewin.jpg" },
+  { id: "p3", name: "Ms. Sharma", subject: "Hindi", style: "Collaborative", avatar: "/avatars/ms-sharma.jpg" },
 ];
 
 export default function SessionPage() {
@@ -34,15 +35,24 @@ export default function SessionPage() {
           <button
             key={persona.id}
             onClick={() => setSelectedPersona(persona.id)}
-            className={`rounded-xl border p-6 text-left transition ${
+            className={`avatar-card rounded-xl border p-6 text-left transition ${
               selectedPersona === persona.id
                 ? "border-blue-400 bg-blue-600/10"
                 : "border-white/10 bg-white/5 hover:border-white/20"
             }`}
           >
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
-                <span className="text-lg font-bold text-white">{persona.name.charAt(0)}</span>
+              <div className="relative">
+                <div className="avatar-animated h-14 w-14 rounded-full overflow-hidden ring-2 ring-blue-400/30">
+                  <Image
+                    src={persona.avatar}
+                    alt={persona.name}
+                    width={56}
+                    height={56}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                {selectedPersona === persona.id && <div className="avatar-pulse-ring" />}
               </div>
               <div>
                 <h3 className="font-semibold text-white">{persona.name}</h3>

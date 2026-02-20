@@ -1,4 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
+
+const tutors = [
+  { name: "Prof. Ada", subject: "Mathematics", avatar: "/avatars/prof-ada.jpg" },
+  { name: "Sir Walter Lewin", subject: "Physics", avatar: "/avatars/sir-walter-lewin.jpg" },
+  { name: "Ms. Sharma", subject: "Hindi", avatar: "/avatars/ms-sharma.jpg" },
+];
 
 export default function HomePage() {
   return (
@@ -50,6 +57,30 @@ export default function HomePage() {
               Try a Demo Session
             </Link>
           </div>
+        </div>
+
+        {/* Avatar Tutors Showcase */}
+        <div className="mt-16 flex items-center justify-center gap-8">
+          {tutors.map((tutor) => (
+            <div key={tutor.name} className="avatar-card flex flex-col items-center gap-3">
+              <div className="relative">
+                <div className="avatar-animated h-24 w-24 rounded-full overflow-hidden ring-2 ring-blue-400/40">
+                  <Image
+                    src={tutor.avatar}
+                    alt={tutor.name}
+                    width={96}
+                    height={96}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="avatar-pulse-ring" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{tutor.name}</p>
+                <p className="text-xs text-gray-500">{tutor.subject}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3">
